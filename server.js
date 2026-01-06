@@ -17,8 +17,9 @@ app.get("/api/doviz", (req, res) => {
     });
 
     response.on("end", () => {
-      const usd = data.match(/<Currency Code="USD"[\\s\\S]*?<ForexSelling>(.*?)<\\/ForexSelling>/);
-      const eur = data.match(/<Currency Code="EUR"[\\s\\S]*?<ForexSelling>(.*?)<\\/ForexSelling>/);
+      const usd = data.match(/<Currency Code="USD"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/);
+      const eur = data.match(/<Currency Code="EUR"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/);
+
 
       if (!usd || !eur) {
         return res.status(500).json({ hata: "Döviz verisi alınamadı" });
