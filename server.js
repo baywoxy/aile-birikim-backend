@@ -17,18 +17,21 @@ app.get("/api/doviz", (req, res) => {
     });
 
     response.on("end", () => {
-      const usd = data.match(/<Currency Code="USD"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/);
-      const eur = data.match(/<Currency Code="EUR"[\s\S]*?<ForexSelling>(.*?)<\/ForexSelling>/);
+      const usdMatch = data.match(
+        /<Currency Code="USD">[\s\S]*?<ForexBuying>(.*?)<\/ForexBuying>/
+      );
+      const eurMatch = data.match(
+        /<Currency Code="EUR">[\s\S]*?<ForexBuying>(.*?)<\/ForexBuying>/
+      );
 
-
-      if (!usd || !eur) {
+      if (!usdMatch || !eurMatch) {
         return res.status(500).json({ hata: "Döviz verisi alınamadı" });
       }
 
       res.json({
         tarih: new Date().toLocaleString("tr-TR"),
-        USD: parseFloat(usd[1]),
-        EUR: parseFloat(eur[1])
+        USD: parseFloat(usdMatch[1]),
+        EUR: parseFloat(eurMatch[1])
       });
     });
   }).on("error", () => {
@@ -36,17 +39,6 @@ app.get("/api/doviz", (req, res) => {
   });
 });
 
-/**
- * Sağlık kontrolü
- */
-app.get("/api/status", (req, res) => {
-  res.json({
-    durum: "Backend çalışıyor",
-    zaman: new Date().toLocaleString("tr-TR")
-  });
-});
-
-const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log("Sunucu çalışıyor:", PORT);
 });
