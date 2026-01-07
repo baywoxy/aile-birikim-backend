@@ -13,50 +13,39 @@ app.get("/api/status", (req, res) => {
   });
 });
 
-/**
- * TCMB Döviz (USD / EUR) – ForexBuying
- */
-app.get("/api/doviz", async (req, res) => {
-  try {
-    const url = "https://api.allorigins.win/raw?url=https://www.google.com/finance/quote/USD-TRY";
+app.get("/api/doviz", (req, res) => {
+  const url = "https://api.frankfurter.app/latest?from=TRY&to=USD,EUR";
 
-    https.get(url, (response) => {
-      let data = "";
+  https.get(url, (response) => {
+    let data = "";
 
-      response.on("data", chunk => data += chunk);
+    response.on("data", chunk => data += chunk);
 
-      response.on("end", () => {
-        const usdMatch = data.match(/data-last-price="([\d.,]+)"/);
+    response.on("end", () => {
+      try {
+        const json = JSON.parse(data);
 
-        const urlEur = "https://api.allorigins.win/raw?url=https://www.google.com/finance/quote/EUR-TRY";
+        if (!json.rates || !json.rates.USD || !json.rates.EUR) {
+          return res.status(500).json({ hata: "Döviz verisi alınamadı" });
+        }
 
-        https.get(urlEur, (res2) => {
-          let data2 = "";
+        // TRY → USD/EUR ters gelir, biz TL karşılığını istiyoruz
+        const usd = (1 / json.rates.USD).toFixed(4);
+        const eur = (1 / json.rates.EUR).toFixed(4);
 
-          res2.on("data", c => data2 += c);
-          res2.on("end", () => {
-            const eurMatch = data2.match(/data-last-price="([\d.,]+)"/);
-
-            if (!usdMatch || !eurMatch) {
-              return res.status(500).json({ hata: "Google verisi okunamadı" });
-            }
-
-            res.json({
-              tarih: new Date().toLocaleString("tr-TR"),
-              USD: parseFloat(usdMatch[1].replace(",", ".")),
-              EUR: parseFloat(eurMatch[1].replace(",", "."))
-            });
-          });
+        res.json({
+          tarih: new Date().toLocaleString("tr-TR"),
+          USD: parseFloat(usd),
+          EUR: parseFloat(eur)
         });
-      });
+      } catch (e) {
+        res.status(500).json({ hata: "JSON parse hatası" });
+      }
     });
-
-  } catch (err) {
-    res.status(500).json({ hata: "Google Finance hatası" });
-  }
+  }).on("error", () => {
+    res.status(500).json({ hata: "Frankfurter API bağlantı hatası" });
+  });
 });
-
-
 
 /**
  * Server start
