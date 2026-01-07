@@ -39,6 +39,8 @@ app.get("/api/doviz", (req, res) => {
   });
 });
 
+const PORT = process.env.PORT || 3000;
+
 app.listen(PORT, () => {
   console.log("Sunucu çalışıyor:", PORT);
 });
