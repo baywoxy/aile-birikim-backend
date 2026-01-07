@@ -17,7 +17,7 @@ app.get("/api/status", (req, res) => {
  * TCMB Döviz (USD / EUR) – ForexBuying
  */
 app.get("/api/doviz", (req, res) => {
-  const url = "https://www.tcmb.gov.tr/kurlar/today.xml";
+  const url = "https://api.exchangerate.host/latest?base=TRY&symbols=USD,EUR";
 
   https.get(url, (response) => {
     let data = "";
@@ -27,27 +27,27 @@ app.get("/api/doviz", (req, res) => {
     });
 
     response.on("end", () => {
-      const usdMatch = data.match(
-        /<Currency Code="USD">[\s\S]*?<ForexBuying>(.*?)<\/ForexBuying>/
-      );
-      const eurMatch = data.match(
-        /<Currency Code="EUR">[\s\S]*?<ForexBuying>(.*?)<\/ForexBuying>/
-      );
+      try {
+        const json = JSON.parse(data);
 
-      if (!usdMatch || !eurMatch) {
-        return res.status(500).json({ hata: "Döviz verisi alınamadı" });
+        if (!json.rates || !json.rates.USD || !json.rates.EUR) {
+          return res.status(500).json({ hata: "Döviz verisi alınamadı" });
+        }
+
+        res.json({
+          tarih: new Date().toLocaleString("tr-TR"),
+          USD: parseFloat((1 / json.rates.USD).toFixed(4)),
+          EUR: parseFloat((1 / json.rates.EUR).toFixed(4))
+        });
+      } catch (err) {
+        res.status(500).json({ hata: "JSON parse hatası" });
       }
-
-      res.json({
-        tarih: new Date().toLocaleString("tr-TR"),
-        USD: parseFloat(usdMatch[1]),
-        EUR: parseFloat(eurMatch[1])
-      });
     });
   }).on("error", () => {
-    res.status(500).json({ hata: "TCMB bağlantı hatası" });
+    res.status(500).json({ hata: "Döviz API bağlantı hatası" });
   });
 });
+
 
 /**
  * Server start
