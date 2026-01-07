@@ -58,6 +58,8 @@ app.get("/api/altin", (req, res) => {
   }
 
   const url = "https://api.frankfurter.app/latest?from=TRY&to=USD";
+   
+  /api/altin?ons=2150&fire=0.01&prim=1.08
 
   https.get(url, (response) => {
     let data = "";
