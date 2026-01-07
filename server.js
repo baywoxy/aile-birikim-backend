@@ -47,6 +47,47 @@ app.get("/api/doviz", (req, res) => {
   });
 });
 
+
+
+app.get("/api/altin", (req, res) => {
+  const ons = parseFloat(req.query.ons);
+  const fire = parseFloat(req.query.fire || 0.01);
+
+  if (!ons || ons <= 0) {
+    return res.status(400).json({ hata: "Ons değeri girilmedi" });
+  }
+
+  const url = "https://api.frankfurter.app/latest?from=TRY&to=USD";
+
+  https.get(url, (response) => {
+    let data = "";
+
+    response.on("data", chunk => data += chunk);
+
+    response.on("end", () => {
+      try {
+        const json = JSON.parse(data);
+        const usdTry = 1 / json.rates.USD;
+
+        const gram = (ons * usdTry) / 31.1035;
+        const hurdaNet = gram * (1 - fire);
+
+        res.json({
+          ons_usd: ons,
+          usd_try: parseFloat(usdTry.toFixed(4)),
+          gram_altin: parseFloat(gram.toFixed(2)),
+          fire_orani: fire,
+          hurda_net: parseFloat(hurdaNet.toFixed(2)),
+          tarih: new Date().toLocaleString("tr-TR")
+        });
+      } catch (e) {
+        res.status(500).json({ hata: "Altın hesaplama hatası" });
+      }
+    });
+  });
+});
+
+
 /**
  * Server start
  */
