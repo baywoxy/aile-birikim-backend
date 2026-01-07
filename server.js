@@ -4,7 +4,17 @@ const https = require("https");
 const app = express();
 
 /**
- * TCMB Döviz Verisi
+ * Sağlık kontrolü
+ */
+app.get("/api/status", (req, res) => {
+  res.json({
+    durum: "Backend çalışıyor",
+    zaman: new Date().toLocaleString("tr-TR")
+  });
+});
+
+/**
+ * TCMB Döviz (USD / EUR) – ForexBuying
  */
 app.get("/api/doviz", (req, res) => {
   const url = "https://www.tcmb.gov.tr/kurlar/today.xml";
@@ -39,8 +49,10 @@ app.get("/api/doviz", (req, res) => {
   });
 });
 
+/**
+ * Server start
+ */
 const PORT = process.env.PORT || 3000;
-
 app.listen(PORT, () => {
   console.log("Sunucu çalışıyor:", PORT);
 });
